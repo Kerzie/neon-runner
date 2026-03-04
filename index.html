@@ -366,9 +366,10 @@ function init() {
   generateSkyline();
   updateHighScore();
   
-  // Add touch/click listeners
+  // Add touch/click listeners — multiple events for WebViewer compatibility
   document.addEventListener('touchstart', handleTouch, { passive: false });
   document.addEventListener('mousedown', handleTouch);
+  document.addEventListener('click', handleTouch);
   
   // Handle resize
   window.addEventListener('resize', () => {
@@ -459,7 +460,10 @@ function createCoin(x, y) {
 
 // Handle touch/click
 function handleTouch(e) {
-  e.preventDefault();
+  // Only prevent default during gameplay, not on buttons
+  if (e.target.tagName !== 'BUTTON' && gameState === 'playing') {
+    e.preventDefault();
+  }
   if (gameState === 'playing' && !isJumping) {
     jump();
   }
