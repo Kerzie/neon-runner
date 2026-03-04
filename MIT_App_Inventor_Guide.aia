@@ -1,0 +1,43 @@
+# MIT App Inventor Project Structure
+
+## Screen1 Design
+- WebViewer1 (Fill Parent x Fill Parent)
+- Button1 (optional: "Reload Game")
+- Label1 (optional: Status display)
+
+## Blocks Configuration
+
+### Screen1.Initialize
+```
+when Screen1.Initialize
+do
+    set WebViewer1.HomeUrl to "index.html"
+    set WebViewer1.Width to Fill Parent
+    set WebViewer1.Height to Fill Parent
+```
+
+### Optional Reload Button
+```
+when Button1.Click
+do
+    call WebViewer1.Reload
+```
+
+### Status Updates (Optional)
+```
+when WebViewer1.PageTitleChanged
+do
+    set Label1.Text to "Game Loaded: " & WebViewer1.PageTitle
+```
+
+## Properties to Set
+- WebViewer1.Visible = true
+- WebViewer1.PromptForPermission = false
+- WebViewer1.IgnoreSslErrors = true (for testing)
+
+## Build Instructions
+1. Create new MIT App Inventor project
+2. Add WebViewer component
+3. Upload index.html to assets
+4. Set HomeUrl to "index.html"
+5. Build and test on mobile device
