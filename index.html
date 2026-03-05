@@ -272,6 +272,22 @@
   }
   @keyframes pulse-hint { 0%,100%{opacity:0.3} 50%{opacity:0.8} }
 
+  /* Dedicated invisible jump tap zone — covers the whole game area
+     during gameplay, sits below menus (z-index 100) but above everything else */
+  #tapOverlay {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    background: transparent;
+    display: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+  }
+  #tapOverlay.active {
+    display: block;
+  }
+
   @media (max-width: 480px) {
     .player { left: 20px; }
     .hud { padding: 0 10px; }
@@ -316,6 +332,9 @@
   </div>
 
   <div id="gameElements"></div>
+
+  <!-- Dedicated jump tap zone — only active during gameplay -->
+  <div id="tapOverlay"></div>
 
   <div class="jump-hint" id="jumpHint">▲ TAP TO JUMP ▲</div>
 
@@ -411,24 +430,24 @@ function init() {
   updateHighScore();
 
   // =============================================
-  // FIX: Use 'touchend' for jump — more reliable
-  // in WebViewer than touchstart. Also guard
-  // against button taps using closest().
+  // FIX: Use a dedicated tap overlay div for jumps.
+  // This is the most reliable approach in WebViewer —
+  // the overlay is the ONLY thing listening for jumps,
+  // so there's zero chance of interfering with buttons.
   // =============================================
-  document.addEventListener('touchend', function(e) {
-    if (gameState !== 'playing') return;
-    // If the tap was on or inside a button, don't jump
-    if (e.target.closest && e.target.closest('button')) return;
-    if (e.target.tagName === 'BUTTON') return;
+  var tapOverlay = document.getElementById('tapOverlay');
+
+  tapOverlay.addEventListener('touchstart', function(e) {
     e.preventDefault();
     jump();
   }, { passive: false });
 
+  tapOverlay.addEventListener('touchend', function(e) {
+    e.preventDefault();
+  }, { passive: false });
+
   // Mouse click fallback for desktop testing
-  document.addEventListener('click', function(e) {
-    if (gameState !== 'playing') return;
-    if (e.target.closest && e.target.closest('button')) return;
-    if (e.target.tagName === 'BUTTON') return;
+  tapOverlay.addEventListener('click', function(e) {
     jump();
   });
 
@@ -670,6 +689,9 @@ function startGame() {
   updateLives();
   updateHighScore();
 
+  // Show tap overlay so taps are captured reliably
+  document.getElementById('tapOverlay').classList.add('active');
+
   lastTime = performance.now();
   if (gameLoop) cancelAnimationFrame(gameLoop);
   gameLoop = requestAnimationFrame(updateGame);
@@ -678,6 +700,7 @@ function startGame() {
 function gameOver() {
   gameState = 'gameOver';
   if (gameLoop) cancelAnimationFrame(gameLoop);
+  document.getElementById('tapOverlay').classList.remove('active');
 
   if (score > highScore) {
     highScore = score;
@@ -698,6 +721,7 @@ function restartGame() {
 function showMenu() {
   gameState = 'menu';
   if (gameLoop) cancelAnimationFrame(gameLoop);
+  document.getElementById('tapOverlay').classList.remove('active');
   document.getElementById('gameOver').classList.add('hidden');
   document.getElementById('mainMenu').classList.remove('hidden');
   document.getElementById('gameElements').innerHTML = '';
